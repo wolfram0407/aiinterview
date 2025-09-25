@@ -1,6 +1,7 @@
 "use client";
 
-import { AudioRecorder, WaveformCanvas } from "@/components";
+import AudioRecorder from "@/components/audio/AudioRecorder";
+import WaveformCanvas from "@/components/audio/WaveformCanvas";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -15,7 +16,7 @@ export default function MicTestPage() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   const audioRecorder = AudioRecorder({
-    onRecordingComplete: async (audioBlob) => {
+    onRecordingComplete: async (audioBlob, duration) => {
       setTestStatus("processing");
       setTranscribedText("");
 

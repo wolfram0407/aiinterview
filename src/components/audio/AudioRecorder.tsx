@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 
 interface AudioRecorderProps {
-  onRecordingComplete: (audioBlob: Blob) => void;
+  onRecordingComplete: (audioBlob: Blob, duration: number) => void;
   onError: (error: string) => void;
 }
 
@@ -89,7 +89,7 @@ export default function AudioRecorder({ onRecordingComplete, onError }: AudioRec
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        onRecordingComplete(audioBlob);
+        onRecordingComplete(audioBlob, recordingTime);
         setIsProcessing(true);
       };
 
