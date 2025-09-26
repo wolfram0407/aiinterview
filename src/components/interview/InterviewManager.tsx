@@ -4,6 +4,7 @@ import AudioRecorder from "@/components/audio/AudioRecorder";
 import WaveformCanvas from "@/components/audio/WaveformCanvas";
 import { useTTS } from "@/hooks/useTTS";
 import { addQA, generateSummary, getInterviewData, updateInterviewData, type InterviewData, type QA } from "@/lib/interview-storage";
+import { sendInterviewLog, type InterviewLogData } from "@/lib/webhook";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // 면접 상태 타입 정의
@@ -16,7 +17,7 @@ export default function InterviewManager() {
   const [answerLog, setAnswerLog] = useState<QA[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [interviewData, setInterviewData] = useState<InterviewData | null>(null);
-  
+
   // 중복 실행 방지를 위한 ref
   const isInitializingRef = useRef(false);
   const hasInitializedRef = useRef(false);
@@ -79,10 +80,10 @@ export default function InterviewManager() {
   const initializeAssistant = useCallback(async () => {
     // 이미 초기화 중이거나 완료된 경우 중복 실행 방지
     if (isInitializingRef.current || hasInitializedRef.current || threadId) {
-      console.log("Assistant 초기화 중복 실행 방지:", { 
-        isInitializing: isInitializingRef.current, 
-        hasInitialized: hasInitializedRef.current, 
-        threadId 
+      console.log("Assistant 초기화 중복 실행 방지:", {
+        isInitializing: isInitializingRef.current,
+        hasInitialized: hasInitializedRef.current,
+        threadId,
       });
       return;
     }
@@ -181,10 +182,18 @@ export default function InterviewManager() {
           const updatedQa = [...answerLog, newQA];
           const summary = await generateSummary(updatedQa);
 
-          updateInterviewData({
+          const updatedData = {
             endedAt: new Date().toISOString(),
             summary,
-          });
+          };
+
+          updateInterviewData(updatedData);
+
+          // 업데이트된 데이터로 웹훅 전송
+          const currentData = getInterviewData();
+          if (currentData) {
+            await sendInterviewToWebhook(currentData);
+          }
         } else {
           setCurrentQuestion(result.response);
           setInterviewState("question");
@@ -320,6 +329,32 @@ export default function InterviewManager() {
     }
   };
 
+  // 면접 로그를 웹훅으로 전송하는 함수
+  const sendInterviewToWebhook = async (interviewData: InterviewData) => {
+    try {
+      const logData: InterviewLogData = {
+        contact: interviewData.contact,
+        startedAt: interviewData.startedAt,
+        endedAt: interviewData.endedAt,
+        qa: interviewData.qa,
+        summary: interviewData.summary,
+      };
+
+      const result = await sendInterviewLog(logData);
+
+      if (result.success) {
+        console.log("면접 로그 전송 성공:", result.message);
+        return true;
+      } else {
+        console.error("면접 로그 전송 실패:", result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error("면접 로그 전송 중 오류:", error);
+      return false;
+    }
+  };
+
   // 면접 종료 핸들러
   const handleEndInterview = async () => {
     setInterviewState("completed");
@@ -327,10 +362,18 @@ export default function InterviewManager() {
     // 면접 종료 시 요약 생성 및 데이터 업데이트
     const summary = await generateSummary(answerLog);
 
-    updateInterviewData({
+    const updatedData = {
       endedAt: new Date().toISOString(),
       summary,
-    });
+    };
+
+    updateInterviewData(updatedData);
+
+    // 업데이트된 데이터로 웹훅 전송
+    const currentData = getInterviewData();
+    if (currentData) {
+      await sendInterviewToWebhook(currentData);
+    }
   };
 
   // 녹음 버튼 스타일 결정
