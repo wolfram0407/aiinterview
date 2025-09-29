@@ -100,7 +100,7 @@ export default function AudioRecorder({ onRecordingComplete, onError }: AudioRec
       console.error("녹음 시작 실패:", error);
       onError("녹음을 시작할 수 없습니다. 마이크가 연결되어 있는지 확인해주세요.");
     }
-  }, [isRecording, isProcessing, requestMicrophonePermission, onRecordingComplete, startTimer]);
+  }, [isRecording, isProcessing, requestMicrophonePermission, onRecordingComplete, startTimer, onError, recordingTime]);
 
   const stopRecording = useCallback(() => {
     if (!isRecording || !mediaRecorderRef.current) return;

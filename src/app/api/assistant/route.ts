@@ -58,9 +58,10 @@ export async function POST(request: NextRequest) {
             threadId: threadId
           });
 
-        } catch (gptError) {
+        } catch (gptError: unknown) {
           console.error('GPT API 오류:', gptError);
-          throw new Error(`GPT API 호출 실패: ${gptError.message}`);
+          const errorMessage = gptError instanceof Error ? gptError.message : '알 수 없는 오류가 발생했습니다.';
+          throw new Error(`GPT API 호출 실패: ${errorMessage}`);
         }
 
       default:
@@ -70,13 +71,14 @@ export async function POST(request: NextRequest) {
         );
     }
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Assistant API 오류:', error);
-    console.error('오류 상세:', error.message);
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+    console.error('오류 상세:', errorMessage);
     return NextResponse.json(
       {
         error: '서버 오류가 발생했습니다.',
-        details: error.message
+        details: errorMessage
       },
       {status: 500}
     );

@@ -68,13 +68,14 @@ export const useTTS = () => {
 
       await audio.play();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('TTS 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : 'TTS 생성에 실패했습니다.';
       setState(prev => ({
         ...prev,
         isGenerating: false,
         isPlaying: false,
-        error: error.message || 'TTS 생성에 실패했습니다.'
+        error: errorMessage
       }));
     }
   }, []);

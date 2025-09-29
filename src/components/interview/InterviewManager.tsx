@@ -16,7 +16,7 @@ export default function InterviewManager() {
   const [currentQuestion, setCurrentQuestion] = useState<string>("");
   const [answerLog, setAnswerLog] = useState<QA[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [interviewData, setInterviewData] = useState<InterviewData | null>(null);
+  const [, setInterviewData] = useState<InterviewData | null>(null);
 
   // 중복 실행 방지를 위한 ref
   const isInitializingRef = useRef(false);
@@ -122,19 +122,23 @@ export default function InterviewManager() {
       console.error("Assistant 초기화 오류:", error);
       setInterviewState("completed");
     }
-  }, [interviewState, threadId, getNextQuestion]);
+  }, [threadId, getNextQuestion]);
 
   // AudioRecorder 훅을 위한 임시 변수들 (나중에 실제 값으로 교체됨)
   let isRecording = false;
-  let audioProcessing = false;
   let recordingTime = 0;
   let hasPermission: boolean | null = null;
-  let canStop = false;
   let audioStream: MediaStream | null = null;
   let startRecording = () => {};
   let stopRecording = () => {};
-  let resetRecording = () => {};
-  let cleanup = () => {};
+
+  let resetRecording = useCallback(() => {
+    // AudioRecorder의 resetRecording이 설정되면 사용됨
+  }, []);
+
+  let cleanup = useCallback(() => {
+    // AudioRecorder의 cleanup이 설정되면 사용됨
+  }, []);
 
   // 답변 처리 및 다음 질문 요청
   const processAnswer = useCallback(
@@ -215,7 +219,7 @@ export default function InterviewManager() {
         resetRecording();
       }
     },
-    [threadId, currentQuestion, resetRecording, speak]
+    [threadId, currentQuestion, resetRecording, speak, answerLog]
   );
 
   // 녹음 완료 핸들러
@@ -272,10 +276,8 @@ export default function InterviewManager() {
 
   // AudioRecorder 훅의 반환값을 기존 변수들에 할당
   isRecording = audioRecorder.isRecording;
-  audioProcessing = audioRecorder.isProcessing;
   recordingTime = audioRecorder.recordingTime;
   hasPermission = audioRecorder.hasPermission;
-  canStop = audioRecorder.canStop;
   audioStream = audioRecorder.audioStream;
   startRecording = audioRecorder.startRecording;
   stopRecording = audioRecorder.stopRecording;
@@ -310,7 +312,7 @@ export default function InterviewManager() {
     };
 
     initialize();
-  }, []); // 의존성 배열을 비워서 한 번만 실행되도록 함
+  }, [initializeAssistant]); // initializeAssistant 의존성 추가
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {

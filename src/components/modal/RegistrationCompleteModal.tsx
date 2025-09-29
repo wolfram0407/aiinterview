@@ -7,7 +7,7 @@ interface RegistrationCompleteModalProps {
   phoneNumber: string;
 }
 
-export default function RegistrationCompleteModal({ isOpen, onClose, onNext, phoneNumber }: RegistrationCompleteModalProps) {
+export default function RegistrationCompleteModal({ isOpen, onNext, phoneNumber }: RegistrationCompleteModalProps) {
   if (!isOpen) return null;
 
   return (

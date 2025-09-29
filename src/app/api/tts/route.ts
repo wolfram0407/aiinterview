@@ -38,12 +38,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('TTS API 오류:', error);
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
     return NextResponse.json(
       {
         error: 'TTS 생성에 실패했습니다.',
-        details: error.message
+        details: errorMessage
       },
       {status: 500}
     );

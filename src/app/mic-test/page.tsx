@@ -16,7 +16,7 @@ export default function MicTestPage() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   const audioRecorder = AudioRecorder({
-    onRecordingComplete: async (audioBlob, duration) => {
+    onRecordingComplete: async (audioBlob) => {
       setTestStatus("processing");
       setTranscribedText("");
 

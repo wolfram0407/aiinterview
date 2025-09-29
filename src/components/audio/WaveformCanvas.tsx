@@ -10,7 +10,7 @@ interface WaveformCanvasProps {
 
 export default function WaveformCanvas({ isRecording, audioStream, className = "" }: WaveformCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
@@ -37,7 +37,8 @@ export default function WaveformCanvas({ isRecording, audioStream, className = "
     // 오디오 컨텍스트 초기화
     const initAudioContext = async () => {
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioContextRef.current = new (window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
         analyserRef.current = audioContextRef.current.createAnalyser();
         analyserRef.current.fftSize = 256;
         dataArrayRef.current = new Uint8Array(analyserRef.current.frequencyBinCount);
@@ -75,7 +76,8 @@ export default function WaveformCanvas({ isRecording, audioStream, className = "
         return;
       }
 
-      analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      analyserRef.current.getByteFrequencyData(dataArrayRef.current as any);
 
       ctx.clearRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
 
